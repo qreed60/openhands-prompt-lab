@@ -4,7 +4,9 @@
 
 `prompts/profiles/qwen3_6_agentic_development.j2` is a local OpenHands prompt profile for agentic coding with a Qwen3.6-35B-A3B style model behind a local OpenAI-compatible endpoint.
 
-The profile is intentionally narrow. It is meant to improve long-running coding behavior, context discipline, validation reporting, and practical autonomy while preserving the safety and workflow intent of the copied upstream OpenHands prompts.
+The profile is intended for generating the active OpenHands system prompt or a merged local system prompt. It is meant to improve long-running coding behavior, context discipline, validation reporting, and practical autonomy while preserving explicit user instructions, active tool constraints, and runtime security boundaries.
+
+It also intentionally reduces unnecessary confirmation stalls for safe project-scoped work. The agent should keep moving when the next step directly supports the requested task and is safe to perform.
 
 ## Original prompt ideas reused
 
@@ -40,7 +42,9 @@ The profile does not reuse the persona framing from the technical-philosophy pro
 
 It does not mention the named persona from that prompt, does not copy abrasive language, and does not require rigid sections such as `Core Judgment`, `Taste Rating`, or a mandatory requirement-confirmation exchange before useful work begins.
 
-It also does not flatten the upstream Jinja prompt tree. The copied `system_prompt.j2` remains the composition root for upstream includes such as `self_documentation.j2`, `security_policy.j2`, `security_risk_assessment.j2`, and `model_specific/*`.
+It also does not flatten the upstream Jinja prompt tree. The copied `system_prompt.j2` can still supply upstream include content such as `self_documentation.j2`, `security_policy.j2`, `security_risk_assessment.j2`, and `model_specific/*` when a merged local system prompt is generated.
+
+The profile should not cause the agent to look for additional limiting instructions before acting. The active generated prompt should be clear enough for safe local development, with explicit user instructions, tool constraints, and security boundaries still applying at runtime.
 
 ## Recommended use
 
@@ -50,10 +54,10 @@ Use it for long multi-step debugging when you want stronger phase discipline, ev
 
 Use it with OpenHands running against a local Qwen3.6-35B-A3B style model through an OpenAI-compatible endpoint when reliability, compactness, and stable reasoning matter more than verbose explanation.
 
-## Combining with `system_prompt.j2`
+## Generating a merged local prompt
 
-This profile is intended to be layered with the copied upstream `system_prompt.j2`, not used as a replacement for it.
+This profile can be used to generate the active OpenHands system prompt or a merged local system prompt.
 
-A future assembly step can render the normal upstream OpenHands system prompt first, then append `prompts/profiles/qwen3_6_agentic_development.j2` afterward as additional local operating guidance. That keeps upstream safety, security, model-specific, and self-documentation includes intact while adding the local Qwen3.6 agentic-development behavior.
+A future assembly step can render the copied OpenHands Jinja prompt content and merge `prompts/profiles/qwen3_6_agentic_development.j2` into that generated output. That keeps useful upstream safety, security, model-specific, and self-documentation content available while producing one active local Qwen3.6 agentic-development prompt.
 
 No upstream prompt file has to be patched to use this file in a generated prompt output later.
