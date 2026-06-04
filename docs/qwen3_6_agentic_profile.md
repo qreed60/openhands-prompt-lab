@@ -54,6 +54,44 @@ Use it for long multi-step debugging when you want stronger phase discipline, ev
 
 Use it with OpenHands running against a local Qwen3.6-35B-A3B style model through an OpenAI-compatible endpoint when reliability, compactness, and stable reasoning matter more than verbose explanation.
 
+## One-shot install
+
+Install the profile into the local OpenHands prompt directory:
+
+```bash
+bash scripts/install_qwen36_agentic_prompt.sh
+```
+
+Dry run without modifying the installed OpenHands prompt directory:
+
+```bash
+bash scripts/install_qwen36_agentic_prompt.sh --dry-run
+```
+
+Force reinstall when the target already contains the Prompt Lab profile marker:
+
+```bash
+bash scripts/install_qwen36_agentic_prompt.sh --force
+```
+
+Restore from a backup path printed by the installer:
+
+```bash
+bash scripts/restore_openhands_prompt_backup.sh --backup-dir PATH_PRINTED_BY_INSTALLER
+```
+
+## Runtime settings alignment
+
+The observed OpenHands config uses `openai/qwen3.6_35b_a3b_openhands` through the local OpenAI-compatible endpoint. It also enables `task_tracker`, sets `system_prompt_filename` to `system_prompt.j2`, keeps `tool_concurrency_limit` at `1`, and enables prompt caching.
+
+`AGENTS.md` remains project-specific and should live in the target repo being worked on. It should not be installed into OpenHands or automatically generated into this prompt repo.
+
+## LM Studio chat template
+
+The Qwen3.6 OpenHands profile has a companion LM Studio Jinja chat template at `lmstudio/qwen3_6_openhands_chat_template.jinja`. It is separate from the OpenHands system prompt.
+
+The LM Studio template controls message formatting, tool-call formatting, `enable_thinking`, and `preserve_thinking`. Install it manually into LM Studio until a safe LM Studio template installer is added.
+
 ## Generating a merged local prompt
 
 This profile can be used to generate the active OpenHands system prompt or a merged local system prompt.
