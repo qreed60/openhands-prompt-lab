@@ -1,0 +1,179 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+repo_root="$(cd "${script_dir}/.." && pwd)"
+profile="qwen36-openhands"
+model=""
+agents_name=""
+force_agents=0
+prepare_only=0
+dry_run=0
+project_dir=""
+openhands_args=()
+
+usage() {
+  cat <<'EOF'
+Usage: bash scripts/ohm [options] [PROJECT_DIR] [-- OPENHANDS_ARGS...]
+
+Options:
+  --profile NAME       OpenHands profile under profiles/. Default: qwen36-openhands.
+  --openhands-profile NAME
+                       Alias for --profile.
+  --model MODEL        Model name or alias for this launch only.
+  --agents NAME        Copy profiles/NAME/AGENTS.md into PROJECT_DIR/AGENTS.md.
+  --project-profile NAME
+                       Alias for --agents.
+  --force-agents       Back up and replace an existing PROJECT_DIR/AGENTS.md.
+  --prepare-only       Apply profile/AGENTS and exit without launching OpenHands.
+  --dry-run            Validate and show planned changes without modifying files or launching OpenHands.
+  -h, --help           Show this help.
+
+Model aliases:
+  openhands, oh        openai/qwen3.6_35b_a3b_openhands
+  agent, manager       openai/qwen3.6_35b_a3b_agent
+  qwen2b, 2b           openai/qwen35_2b
+  kimi, vision         openai/kimi_vision
+EOF
+}
+
+fail() {
+  printf 'ohm failure: %s\n' "$*" >&2
+  exit 1
+}
+
+resolve_model() {
+  case "$1" in
+    openhands|oh)
+      printf '%s\n' "openai/qwen3.6_35b_a3b_openhands"
+      ;;
+    agent|manager)
+      printf '%s\n' "openai/qwen3.6_35b_a3b_agent"
+      ;;
+    qwen2b|2b)
+      printf '%s\n' "openai/qwen35_2b"
+      ;;
+    kimi|vision)
+      printf '%s\n' "openai/kimi_vision"
+      ;;
+    *)
+      printf '%s\n' "$1"
+      ;;
+  esac
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --)
+      shift
+      openhands_args=("$@")
+      break
+      ;;
+    --profile|--openhands-profile)
+      [[ $# -ge 2 ]] || fail "$1 requires a name"
+      profile="$2"
+      shift 2
+      ;;
+    --model)
+      [[ $# -ge 2 ]] || fail "--model requires a model or alias"
+      model="$(resolve_model "$2")"
+      shift 2
+      ;;
+    --agents|--project-profile)
+      [[ $# -ge 2 ]] || fail "$1 requires a name"
+      agents_name="$2"
+      shift 2
+      ;;
+    --force-agents)
+      force_agents=1
+      shift
+      ;;
+    --prepare-only)
+      prepare_only=1
+      shift
+      ;;
+    --dry-run)
+      dry_run=1
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    -*)
+      fail "unknown option: $1"
+      ;;
+    *)
+      [[ -z "${project_dir}" ]] || fail "multiple PROJECT_DIR values supplied: ${project_dir} and $1"
+      project_dir="$1"
+      shift
+      ;;
+  esac
+done
+
+if [[ -z "${project_dir}" ]]; then
+  project_dir="$(pwd)"
+fi
+
+[[ -d "${project_dir}" ]] || fail "PROJECT_DIR does not exist or is not a directory: ${project_dir}"
+
+apply_args=(--profile "${profile}")
+if [[ "${dry_run}" -eq 1 ]]; then
+  apply_args+=(--dry-run)
+fi
+
+bash "${script_dir}/apply_openhands_profile.sh" "${apply_args[@]}"
+
+if [[ -n "${agents_name}" ]]; then
+  case "${agents_name}" in
+    */*|*..*|'')
+      fail "agents name must be a simple directory name"
+      ;;
+  esac
+
+  agents_src="${repo_root}/profiles/${agents_name}/AGENTS.md"
+  agents_dest="${project_dir}/AGENTS.md"
+  [[ -f "${agents_src}" ]] || fail "AGENTS profile is missing: ${agents_src}"
+
+  if [[ -e "${agents_dest}" && "${force_agents}" -ne 1 ]]; then
+    if [[ "${dry_run}" -eq 1 ]]; then
+      printf 'Dry run: AGENTS.md already exists at %s; would skip. Use --force-agents to replace it.\n' "${agents_dest}"
+    else
+      printf 'AGENTS.md already exists at %s; skipping. Use --force-agents to replace it.\n' "${agents_dest}"
+    fi
+  else
+    if [[ "${dry_run}" -eq 1 ]]; then
+      if [[ -e "${agents_dest}" ]]; then
+        printf 'Dry run: would back up existing AGENTS.md at %s before replacement.\n' "${agents_dest}"
+      fi
+      printf 'Dry run: would copy %s to %s\n' "${agents_src}" "${agents_dest}"
+    else
+      if [[ -e "${agents_dest}" ]]; then
+        stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+        backup_path="${agents_dest}.bak.${stamp}"
+        cp -p "${agents_dest}" "${backup_path}"
+        printf 'Backed up existing AGENTS.md to %s\n' "${backup_path}"
+      fi
+      cp "${agents_src}" "${agents_dest}"
+      printf 'Copied %s to %s\n' "${agents_src}" "${agents_dest}"
+    fi
+  fi
+fi
+
+if [[ "${dry_run}" -eq 1 ]]; then
+  printf 'Dry run complete; no files were modified and OpenHands was not launched.\n'
+  exit 0
+fi
+
+if [[ "${prepare_only}" -eq 1 ]]; then
+  printf 'Prepare-only complete; OpenHands was not launched.\n'
+  exit 0
+fi
+
+if [[ -n "${model}" ]]; then
+  printf 'Launching OpenHands with LLM_MODEL=%s\n' "${model}"
+  LLM_MODEL="${model}" openhands --override-with-envs "${project_dir}" "${openhands_args[@]}"
+else
+  printf 'Launching OpenHands with profile model settings\n'
+  openhands "${project_dir}" "${openhands_args[@]}"
+fi

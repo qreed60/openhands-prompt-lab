@@ -1,0 +1,102 @@
+{
+  "llm": {
+    "model": "openai/qwen3.6_35b_a3b_agent",
+    "api_key": "local",
+    "base_url": "http://192.168.5.5:1234/v1",
+    "temperature": 0.6,
+    "top_p": 0.95,
+    "top_k": 20,
+    "max_input_tokens": 131072,
+    "max_output_tokens": 30000,
+    "timeout": null,
+    "disable_vision": true,
+    "caching_prompt": true,
+    "prompt_cache_retention": "24h",
+    "native_tool_calling": true,
+    "drop_params": true,
+    "modify_params": true,
+    "stream": false,
+    "reasoning_effort": "high",
+    "enable_encrypted_reasoning": true,
+    "extended_thinking_budget": 65536,
+    "usage_id": "agent",
+    "litellm_extra_body": {
+      "min_p": 0.0,
+      "presence_penalty": 0.0,
+      "repetition_penalty": 1.0,
+      "chat_template_kwargs": {
+        "enable_thinking": true,
+        "preserve_thinking": true
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "terminal",
+      "params": {}
+    },
+    {
+      "name": "file_editor",
+      "params": {}
+    },
+    {
+      "name": "task_tracker",
+      "params": {}
+    },
+    {
+      "name": "task_tool_set",
+      "params": {}
+    }
+  ],
+  "include_default_tools": [
+    "FinishTool",
+    "ThinkTool"
+  ],
+  "system_prompt_filename": "system_prompt.j2",
+  "security_policy_filename": "security_policy.j2",
+  "system_prompt_kwargs": {
+    "cli_mode": true,
+    "llm_security_analyzer": true
+  },
+  "condenser": {
+    "kind": "LLMSummarizingCondenser",
+    "max_size": 120,
+    "keep_first": 4,
+    "minimum_progress": 0.1,
+    "hard_context_reset_max_retries": 5,
+    "hard_context_reset_context_scaling": 0.8,
+    "llm": {
+      "model": "openai/qwen3.6_35b_a3b_agent",
+      "api_key": "local",
+      "base_url": "http://192.168.5.5:1234/v1",
+      "temperature": 0.6,
+      "top_p": 0.95,
+      "top_k": 20,
+      "max_input_tokens": 131072,
+      "max_output_tokens": 30000,
+      "timeout": null,
+      "disable_vision": true,
+      "caching_prompt": true,
+      "prompt_cache_retention": "24h",
+      "native_tool_calling": true,
+      "drop_params": true,
+      "modify_params": true,
+      "stream": false,
+      "reasoning_effort": "high",
+      "enable_encrypted_reasoning": true,
+      "extended_thinking_budget": 65536,
+      "usage_id": "condenser",
+      "litellm_extra_body": {
+        "min_p": 0.0,
+        "presence_penalty": 0.0,
+        "repetition_penalty": 1.0,
+        "chat_template_kwargs": {
+          "enable_thinking": true,
+          "preserve_thinking": true
+        }
+      }
+    }
+  },
+  "tool_concurrency_limit": 1,
+  "kind": "Agent"
+}

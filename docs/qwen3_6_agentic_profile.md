@@ -54,21 +54,35 @@ Use it for long multi-step debugging when you want stronger phase discipline, ev
 
 Use it with OpenHands running against a local Qwen3.6-35B-A3B style model through an OpenAI-compatible endpoint when reliability, compactness, and stable reasoning matter more than verbose explanation.
 
-## One-shot install
+## Declarative profile use
 
-Install the profile into the local OpenHands prompt directory:
+Normal launcher use should go through the declarative profiles under `profiles/`:
 
 ```bash
-bash scripts/install_qwen36_agentic_prompt.sh
+bash scripts/ohm --profile qwen36-openhands /path/to/project
 ```
 
-Dry run without modifying the installed OpenHands prompt directory:
+Apply a profile directly without launching OpenHands:
+
+```bash
+bash scripts/apply_openhands_profile.sh --profile qwen36-openhands
+```
+
+Dry run without modifying `~/.openhands`:
+
+```bash
+bash scripts/apply_openhands_profile.sh --dry-run --profile qwen36-openhands
+```
+
+`scripts/install_qwen36_agentic_prompt.sh` remains available only as a legacy/manual bootstrap tool for patching an installed OpenHands SDK prompt tree. It is not used by `scripts/ohm`.
+
+Legacy dry run:
 
 ```bash
 bash scripts/install_qwen36_agentic_prompt.sh --dry-run
 ```
 
-Force reinstall when the target already contains the Prompt Lab profile marker:
+Legacy force reinstall when the target already contains the Prompt Lab profile marker:
 
 ```bash
 bash scripts/install_qwen36_agentic_prompt.sh --force

@@ -6,15 +6,15 @@ Apply this file in LM Studio as a model Prompt Template override for the Qwen3.6
 
 The artifacts stay separate:
 
-- The OpenHands system prompt is managed by `scripts/install_qwen36_agentic_prompt.sh`.
-- OpenHands runtime settings are managed separately by the agent settings script.
+- The OpenHands system prompt is copied from a declarative profile by `scripts/apply_openhands_profile.sh` or `scripts/ohm`.
+- OpenHands runtime settings are copied from the selected profile's `agent_settings.json`.
 - `AGENTS.md` remains in the target project repo, such as ThomsonLint.
 
 This template defaults `enable_thinking=true` and `preserve_thinking=true`. `preserve_thinking` is useful for agentic multi-turn workflows because it keeps prior assistant thinking in context when the template renders conversation history.
 
 OpenHands can try to pass `preserve_thinking` through `litellm_extra_body.chat_template_kwargs`, but putting the default in the LM Studio Jinja template is more reliable when template kwargs are not propagated.
 
-Qwen coding sampling belongs in `~/.openhands/agent_settings.json`, not inside the template:
+Qwen coding sampling belongs in the selected profile's `agent_settings.json`, not inside the template:
 
 - `temperature=0.6`
 - `top_p=0.95`
